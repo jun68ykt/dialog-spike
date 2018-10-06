@@ -1,6 +1,7 @@
 /* eslint-disable react/no-multi-comp */
 
 import React from 'react';
+import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -16,7 +17,7 @@ import AddIcon from '@material-ui/icons/Add';
 import Typography from '@material-ui/core/Typography';
 import blue from '@material-ui/core/colors/blue';
 
-const emails = ['username@gmail.com', 'user02@gmail.com'];
+const emails = ['user01@gmail.com', 'user02@gmail.com', 'user03@gmail.com'];
 const styles = {
   avatar: {
     backgroundColor: blue[100],
@@ -25,12 +26,15 @@ const styles = {
 };
 
 class SimpleDialog extends React.Component {
+  itemElements = {};
+
   handleClose = () => {
     this.props.onClose(this.props.selectedValue);
   };
 
-  handleListItemClick = value => {
-    this.props.onClose(value);
+  handleListItemKeyDown = (event, value) => {
+    if (event.key === 'Enter')
+      this.props.onClose(value);
   };
 
   render() {
@@ -42,7 +46,13 @@ class SimpleDialog extends React.Component {
         <div>
           <List>
             {emails.map(email => (
-              <ListItem button onClick={() => this.handleListItemClick(email)} key={email}>
+              <ListItem
+                button
+                ref={(e) => { this.itemElements[email] = ReactDOM.findDOMNode(e); }}
+                onMouseOver={() => { this.itemElements[email].focus(); }}
+                onMouseOut={() => { this.itemElements[email].blur(); }}
+                onKeyDown={(event) => this.handleListItemKeyDown(event, email)}
+                key={email}>
                 <ListItemAvatar>
                   <Avatar className={classes.avatar}>
                     <PersonIcon />
@@ -51,7 +61,13 @@ class SimpleDialog extends React.Component {
                 <ListItemText primary={email} />
               </ListItem>
             ))}
-            <ListItem button onClick={() => this.handleListItemClick('addAccount')}>
+            <ListItem
+              button
+              ref={(e) => { this.itemElements['addAccount'] = ReactDOM.findDOMNode(e); }}
+              onMouseOver={() => { this.itemElements['addAccount'].focus(); }}
+              onMouseOut={() => { this.itemElements['addAccount'].blur(); }}
+              onKeyDown={(event) => this.handleListItemKeyDown(event, 'addAccount')}
+              >
               <ListItemAvatar>
                 <Avatar>
                   <AddIcon />
@@ -74,6 +90,13 @@ SimpleDialog.propTypes = {
 
 const SimpleDialogWrapped = withStyles(styles)(SimpleDialog);
 
+const OpenButton = withStyles({
+  root: {
+    color: 'white',
+    backgroundColor: '#888',
+  }
+})(Button);
+
 class SimpleDialogDemo extends React.Component {
   state = {
     open: false,
@@ -95,7 +118,9 @@ class SimpleDialogDemo extends React.Component {
       <div>
         <Typography variant="subheading">Selected: {this.state.selectedValue}</Typography>
         <br />
-        <Button onClick={this.handleClickOpen}>Open simple dialog</Button>
+        <OpenButton onClick={this.handleClickOpen} disableRipple>
+          Open simple dialog
+        </OpenButton>
         <SimpleDialogWrapped
           selectedValue={this.state.selectedValue}
           open={this.state.open}
